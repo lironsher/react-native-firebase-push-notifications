@@ -1,8 +1,8 @@
 # react-native-firebase-push-notifications
 
-This is kind of fork of [rn-firebase/notifications] https://rnfirebase.io/docs/v5.x.x/notifications/
+This is kind of fork of [rn-firebase/notifications](https://rnfirebase.io/docs/v5.x.x/notifications/)
 
-Thanks to [Sacheen Dhanjie] https://github.com/sacheen how started that fork.
+Thanks to [Sacheen Dhanjie](https://github.com/sacheen) how started that fork.
 
 # Current Status
 Still in development and testing.
