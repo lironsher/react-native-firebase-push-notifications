@@ -3,6 +3,22 @@ import Notification from './notifications/Notification';
 import AndroidNotifications from './notifications/AndroidNotifications';
 import IOSNotifications from './notifications/IOSNotifications';
 import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
+import AndroidAction from './notifications/AndroidAction';
+import AndroidChannel from './notifications/AndroidChannel';
+import AndroidChannelGroup from './notifications/AndroidChannelGroup';
+import AndroidRemoteInput from './notifications/AndroidRemoteInput';
+
+import {
+	BadgeIconType,
+	Category,
+	Defaults,
+	GroupAlert,
+	Importance,
+	Priority,
+	SemanticAction,
+	Visibility,
+} from './notifications/types';
+
 import _ from 'lodash';
 
 const { FirebaseNotifications } = NativeModules;
@@ -137,6 +153,86 @@ class Notifications extends NativeEventEmitter {
 		}
 		return null;
 	};
+
+	/**
+	 * Display a notification
+	 * @param notification
+	 * @returns {*}
+	 */
+
+	displayNotification(notification: Notification): Promise<void> {
+		if (!(notification instanceof Notification)) {
+			return Promise.reject(
+				new Error(
+					`Notifications:displayNotification expects a 'Notification' but got type ${typeof notification}`
+				)
+			);
+		}
+		try {
+			return FirebaseNotifications.displayNotification(
+				notification.build()
+			);
+		} catch (error) {
+			return Promise.reject(error);
+		}
+	}
+
+	/**
+	 * Cancel all notifications
+	 */
+	cancelAllNotifications(): Promise<void> {
+		return FirebaseNotifications.cancelAllNotifications();
+	}
+
+	/**
+	 * Cancel a notification by id.
+	 * @param notificationId
+	 */
+	cancelNotification(notificationId: string): Promise<void> {
+		if (!notificationId) {
+			return Promise.reject(
+				new Error(
+					'Notifications: cancelNotification expects a `notificationId`'
+				)
+			);
+		}
+		return FirebaseNotifications.cancelNotification(notificationId);
+	}
+
+	/**
+	 * Returns an array of all scheduled notifications
+	 * @returns {Promise.<Array>}
+	 */
+	getScheduledNotifications(): Promise<Notification[]> {
+		return FirebaseNotifications.getScheduledNotifications();
+	}
+
+	/**
+	 * Schedule a notification
+	 * @param notification
+	 * @returns {*}
+	 */
+	scheduleNotification(
+		notification: Notification,
+		schedule: Schedule
+	): Promise<void> {
+		if (!(notification instanceof Notification)) {
+			return Promise.reject(
+				new Error(
+					`Notifications:scheduleNotification expects a 'Notification' but got type ${typeof notification}`
+				)
+			);
+		}
+		try {
+			const nativeNotification = notification.build();
+			nativeNotification.schedule = schedule;
+			return FirebaseNotifications.scheduleNotification(
+				nativeNotification
+			);
+		} catch (error) {
+			return Promise.reject(error);
+		}
+	}
 }
 
 class Messaging extends NativeEventEmitter {
@@ -183,3 +279,21 @@ export const messages = new Messaging();
 export const NotificationMessage = Notification;
 
 //export default FirebaseNotifications
+
+export const statics = {
+	Android: {
+		Action: AndroidAction,
+		BadgeIconType,
+		Category,
+		Channel: AndroidChannel,
+		ChannelGroup: AndroidChannelGroup,
+		Defaults,
+		GroupAlert,
+		Importance,
+		Priority,
+		RemoteInput: AndroidRemoteInput,
+		SemanticAction,
+		Visibility,
+	},
+	Notification,
+};
