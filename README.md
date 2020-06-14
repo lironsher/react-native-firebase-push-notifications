@@ -5,12 +5,21 @@ This is kind of fork of [rn-firebase/notifications](https://rnfirebase.io/docs/v
 Thanks to [Sacheen Dhanjie](https://github.com/sacheen) how started that fork.
 
 # Current Status
+
 Still in development and testing.
 Tested only on Android
 
 ## Getting started
 
 `$ npm install react-native-firebase-push-notifications --save`
+
+or
+
+`$ yarn add react-native-firebase-push-notifications`
+
+then for iOS
+
+`$ cd ios && pod install`
 
 ### Mostly automatic installation
 
@@ -25,6 +34,7 @@ Tested only on Android
 Add the following to android/app/src/main/AndroidManifest.xml:
 
 Add permissions:
+
 ```
 <manifest ...>
   <uses-permission android:name="android.permission.INTERNET" />
@@ -33,6 +43,7 @@ Add permissions:
 ```
 
 Set app launch mode inside activity props:
+
 ```
 <activity
   ...
@@ -41,7 +52,9 @@ Set app launch mode inside activity props:
 ```
 
 #### Default icon and color (Optional)
+
 Within the application component, add metadata elements to set a default notification icon and color. Android uses these values whenever incoming messages do not explicitly set icon or color.
+
 ```
 <application ...>
   <!-- Set custom default icon. This is used when no icon is set for incoming notification messages.
@@ -58,7 +71,9 @@ Within the application component, add metadata elements to set a default notific
 ```
 
 #### Notification channels (Optional)
+
 From Android 8.0 (API level 26) and higher, notification channels are supported and recommended. FCM provides a default notification channel with basic settings. If you prefer to create and use your own default channel, set default_notification_channel_id to the ID of your notification channel object as shown; FCM will use this value whenever incoming messages do not explicitly set a notification channel.
+
 ```
 <application ...>
   <meta-data
@@ -67,9 +82,10 @@ From Android 8.0 (API level 26) and higher, notification channels are supported 
 </application>
 ```
 
-
 #### Scheduled Notifications (Optional)
+
 If you would like to schedule local notifications then you also need to add the following to the application component of android/app/src/main/AndroidManifest.xml:
+
 ```
 <application ...>
   <receiver android:name="com.afrihost.firebase.notifications.RNFirebaseNotificationReceiver"/>
@@ -84,56 +100,80 @@ If you would like to schedule local notifications then you also need to add the 
 </application>
 ```
 
+## iOS Setup
+
+### Add firebase credentials
+
+The Firebase console provides a `GoogleService-Info.plist` file containing a set of credentials for iOS devices to use when authenticating with your Firebase project.
+
+### Setup Credentials
+
+1.  Select your firebase iOS project
+2.  select the iOS icon that will open the configuration section
+    1. Fill in the required information
+    2. Download the `GoogleService-Info.plist` then, Move the GoogleService-Info.plist file that you just downloaded into the root of your Xcode project and add it to all targets.
+    3. Add the firebase SDK if you are **not** using PODS.
+3.  add the following in AppDelegate code
+    #import "AppDelegate.h"
+    ....
+    #import "Firebase.h" <--- Add this
+    #import "FirebasePushNotifications.h" <--- Add this
+    @implementation AppDelegate - (BOOL)application:(UIApplication _)application didFinishLaunchingWithOptions:(NSDictionary _)launchOptions
+    {
+    [FIRApp configure]; <--Add this
+    [FirebasePushNotifications configure]; <--Add this
+    ..........
+    ..........
+    return YES;
+    }
+4.  Finally, run `$ npx react-native run-ios` to confirm the app communicates with firebase (You may need to uninstall and reinstall your app.)
 
 ## Usage
-```javascript
 
-import {notifications} from 'react-native-firebase-push-notifications';
+```javascript
+import { notifications } from 'react-native-firebase-push-notifications';
 import AndroidChannel from 'react-native-firebase-push-notifications/src/notifications/AndroidChannel';
 
-
 notifications.onNotification((notification: Notification) => {
-// Process your notification as required
-console.log('onNotification', notification);
+	// Process your notification as required
+	console.log('onNotification', notification);
 });
 notifications.onNotificationOpened((notification: Notification) => {
-// Process your notification as required
-console.log('onNotificationOpened', notification);
+	// Process your notification as required
+	console.log('onNotificationOpened', notification);
 });
 
 const channels = [
-new AndroidChannel('1', 'Events', 5).setDescription(
-    'Events',
-),
-new AndroidChannel('2', 'Chats', 5).setDescription('Chat'),
+	new AndroidChannel('1', 'Events', 5).setDescription('Events'),
+	new AndroidChannel('2', 'Chats', 5).setDescription('Chat'),
 ];
 
 //Create the channels
 for (let i = 0; i < channels.length; i++) {
-const channel = channels[i];
-notifications.android.createChannel(channel);
+	const channel = channels[i];
+	notifications.android.createChannel(channel);
 }
 
 const notification = new statics.Notification()
-.setNotificationId('notificationId')
-.setTitle('My notification title')
-.setBody('My notification body')
-.setData({
-    key1: 'value1',
-    key2: 'value2',
-});
+	.setNotificationId('notificationId')
+	.setTitle('My notification title')
+	.setBody('My notification body')
+	.setData({
+		key1: 'value1',
+		key2: 'value2',
+	});
 
 if (Platform.OS == 'android') {
-notification.android.setChannelId('1');
+	notification.android.setChannelId('1');
 }
 notifications.displayNotification(notification);
-  
+
 const date = new Date();
 date.setMinutes(date.getMinutes() + 5);
 
 notifications.scheduleNotification(notification, {
-    fireDate: date.getTime(),
-  });
+	fireDate: date.getTime(),
+});
 
 const list = await notifications.getScheduledNotifications();
 console.log(list);
