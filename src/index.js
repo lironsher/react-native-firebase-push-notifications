@@ -44,7 +44,7 @@ class Notifications extends NativeEventEmitter {
 		this.localEventEmitter = new EventEmitter();
 		this.removeOnNotificationOpened = this.addListener(
 			'notifications_notification_opened',
-			event => {
+			(event) => {
 				this.localEventEmitter.emit(
 					'onNotificationOpened',
 					new Notification(event.notification, this)
@@ -52,9 +52,9 @@ class Notifications extends NativeEventEmitter {
 			}
 		);
 
-		removeOnNotificationReceived = this.addListener(
+		this.removeOnNotificationReceived = this.addListener(
 			'notifications_notification_received',
-			event => {
+			(event) => {
 				this.localEventEmitter.emit(
 					'onNotification',
 					new Notification(event, this)
@@ -75,7 +75,7 @@ class Notifications extends NativeEventEmitter {
 		return this._ios;
 	}
 
-	onNotificationOpened = nextOrObserver => {
+	onNotificationOpened = (nextOrObserver) => {
 		let listener;
 		if (_.isFunction(nextOrObserver)) {
 			listener = nextOrObserver;
@@ -100,7 +100,7 @@ class Notifications extends NativeEventEmitter {
 		};
 	};
 
-	onNotification = nextOrObserver => {
+	onNotification = (nextOrObserver) => {
 		let listener;
 		if (_.isFunction(nextOrObserver)) {
 			listener = nextOrObserver;
@@ -147,10 +147,25 @@ class Notifications extends NativeEventEmitter {
 		return null;
 	};
 
-	setBadge = async num => {
+	setBadge = async (num) => {
 		if (Platform.OS === 'ios') {
 			return await FirebaseNotifications.setBadge(num);
 		}
+		return null;
+	};
+
+	requestPermission = async () => {
+		if (Platform.OS === 'ios') {
+			return await RNFirebaseMessaging.requestPermission();
+		}
+		return null;
+	};
+
+	hasPermission = async () => {
+		if (Platform.OS === 'ios') {
+			return await RNFirebaseMessaging.hasPermission();
+		}
+
 		return null;
 	};
 
@@ -242,13 +257,13 @@ class Messaging extends NativeEventEmitter {
 
 		removeMessageTokenRefreshed = this.addListener(
 			'messaging_token_refreshed',
-			event => {
+			(event) => {
 				this.localEventEmitter.emit('onTokenRefresh', event);
 			}
 		);
 	}
 
-	onTokenRefresh = nextOrObserver => {
+	onTokenRefresh = (nextOrObserver) => {
 		let listener;
 		if (_.isFunction(nextOrObserver)) {
 			listener = nextOrObserver;
@@ -271,6 +286,14 @@ class Messaging extends NativeEventEmitter {
 
 	getToken = () => {
 		return RNFirebaseMessaging.getToken();
+	};
+
+	requestPermission = async () => {
+		return await RNFirebaseMessaging.requestPermission();
+	};
+
+	hasPermission = async () => {
+		return await RNFirebaseMessaging.hasPermission();
 	};
 }
 
