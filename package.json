@@ -1,49 +1,47 @@
 {
-  "name": "react-native-firebase-push-notifications",
-  "title": "React Native Firebase Push Notifications",
-  "version": "0.0.10",
-  "description": "A React native firebase push notification implementation for Android and iOS",
-  "main": "./src/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/afrihost/react-native-firebase-push-notifications.git",
-    "baseUrl": "https://github.com/afrihost/react-native-firebase-push-notifications"
-  },
-  "keywords": [
-    "react-native",
-    "firebase",
-    "firebase-push-notifications",
-    "ios",
-    "android",
-    "fcm",
-    "gcm",
-    "google-cloud-messaging"
-  ],
-  "author": {
-    "name": "Sacheen Dhanjie",
-    "email": "open-source@afrihost.com",
-    "username": "open-source@afrihost.com"
-  },
-
-  "license": "MIT",
-  "licenseFilename": "LICENSE",
-  "peerDependencies": {
-    "react": "^16.9.0",
-    "react-native": ">=0.61.0-rc.0 <1.0.x"
-  },
-  "dependencies": {
-    "lodash": "^4.17.11"
-  },
-  "devDependencies": {
-    "react": "^16.8.3",
-    "react-native": "^0.61.5"
-  },
-  "bugs": {
-    "url": "https://github.com/afrihost/react-native-firebase-push-notifications/issues"
-  },
-  "homepage": "https://github.com/afrihost/react-native-firebase-push-notifications#readme"
+	"name": "react-native-firebase-push-notifications",
+	"title": "React Native Firebase Push Notifications",
+	"version": "0.0.11",
+	"description": "A React native firebase push notification implementation for Android and iOS",
+	"main": "./src/index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/afrihost/react-native-firebase-push-notifications.git",
+		"baseUrl": "https://github.com/afrihost/react-native-firebase-push-notifications"
+	},
+	"keywords": [
+		"react-native",
+		"firebase",
+		"firebase-push-notifications",
+		"ios",
+		"android",
+		"fcm",
+		"gcm",
+		"google-cloud-messaging"
+	],
+	"author": {
+		"name": "Sacheen Dhanjie",
+		"email": "open-source@afrihost.com",
+		"username": "open-source@afrihost.com"
+	},
+	"license": "MIT",
+	"licenseFilename": "LICENSE",
+	"peerDependencies": {
+		"react": "^16.9.0",
+		"react-native": ">=0.61.0-rc.0 <1.0.x"
+	},
+	"dependencies": {
+		"lodash": "^4.17.11"
+	},
+	"devDependencies": {
+		"react": "^16.8.3",
+		"react-native": "^0.61.5"
+	},
+	"bugs": {
+		"url": "https://github.com/afrihost/react-native-firebase-push-notifications/issues"
+	},
+	"homepage": "https://github.com/afrihost/react-native-firebase-push-notifications#readme"
 }
-
