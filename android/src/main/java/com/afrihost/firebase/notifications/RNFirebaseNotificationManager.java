@@ -18,7 +18,7 @@ import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.service.notification.StatusBarNotification;
 import android.support.annotation.RequiresApi;
-import androidx.core.content.LocalBroadcastManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
