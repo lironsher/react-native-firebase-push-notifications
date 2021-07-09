@@ -10,12 +10,12 @@ Pod::Spec.new do |s|
   s.description  = <<-DESC
                   react-native-firebase-push-notifications
                    DESC
-  s.homepage     = "https://github.com/afrihost/react-native-firebase-push-notifications"
+  s.homepage     = "https://github.com/lironsher/react-native-firebase-push-notifications"
   s.license      = "MIT"
   # s.license    = { :type => "MIT", :file => "FILE_LICENSE" }
   s.authors      = { "Your Name" => "open-source@afrihost.com" }
   s.platforms    = { :ios => "9.0" }
-  s.source       = { :git => "https://github.com/afrihost/react-native-firebase-push-notifications.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/lironsher/react-native-firebase-push-notifications.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,swift}"
   s.requires_arc = true
