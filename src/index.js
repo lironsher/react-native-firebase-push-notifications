@@ -1,12 +1,23 @@
-import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
-import Notification from './notifications/Notification';
-import AndroidNotifications from './notifications/AndroidNotifications';
-import IOSNotifications from './notifications/IOSNotifications';
-import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
-import AndroidAction from './notifications/AndroidAction';
-import AndroidChannel from './notifications/AndroidChannel';
-import AndroidChannelGroup from './notifications/AndroidChannelGroup';
-import AndroidRemoteInput from './notifications/AndroidRemoteInput';
+import { NativeModules, Platform, NativeEventEmitter } from "react-native"
+import Notification from "./notifications/Notification"
+import AndroidNotifications from "./notifications/AndroidNotifications"
+import IOSNotifications from "./notifications/IOSNotifications"
+import EventEmitter from "react-native/Libraries/vendor/emitter/EventEmitter"
+import _ from "lodash"
+import AndroidAction from "./notifications/AndroidAction"
+import AndroidChannel from "./notifications/AndroidChannel"
+import AndroidChannelGroup from "./notifications/AndroidChannelGroup"
+import AndroidRemoteInput from "./notifications/AndroidRemoteInput"
+import {
+  BadgeIconType,
+  Category,
+  Defaults,
+  GroupAlert,
+  Importance,
+  Priority,
+  SemanticAction,
+  Visibility,
+} from "./notifications/types"
 
 import {
 	BadgeIconType,
@@ -25,151 +36,131 @@ const { FirebaseNotifications } = NativeModules;
 const { RNFirebaseMessaging } = NativeModules;
 
 const NATIVE_EVENTS = [
-	'notifications_notification_displayed',
-	'notifications_notification_opened',
-	'notifications_notification_received',
-];
+  "notifications_notification_displayed",
+  "notifications_notification_opened",
+  "notifications_notification_received",
+]
 
 class Notifications extends NativeEventEmitter {
-	_android: AndroidNotifications;
+  constructor() {
+    super(FirebaseNotifications)
+    this.AndroidNotifications = new AndroidNotifications()
+    this.IOSNotifications = new IOSNotifications()
+    this.localEventEmitter = new EventEmitter()
+    this.removeOnNotificationOpened = this.addListener(
+      "notifications_notification_opened",
+      (event) => {
+        this.localEventEmitter.emit(
+          "onNotificationOpened",
+          new Notification(event.notification, this)
+        )
+      }
+    )
 
-	_ios: IOSNotifications;
+    this.removeOnNotificationReceived = this.addListener(
+      "notifications_notification_received",
+      (event) => {
+        this.localEventEmitter.emit(
+          "onNotification",
+          new Notification(event, this)
+        )
+      }
+    )
 
-	constructor() {
-		super(FirebaseNotifications);
+    if (Platform.OS === "ios") {
+      FirebaseNotifications.jsInitialised()
+    }
+  }
 
-		this._android = new AndroidNotifications(this);
-		this._ios = new IOSNotifications(this);
+  android() {
+    return this.AndroidNotifications
+  }
 
-		this.localEventEmitter = new EventEmitter();
-		this.removeOnNotificationOpened = this.addListener(
-			'notifications_notification_opened',
-			(event) => {
-				this.localEventEmitter.emit(
-					'onNotificationOpened',
-					new Notification(event.notification, this)
-				);
-			}
-		);
+  ios() {
+    return this.IOSNotifications
+  }
 
-		this.removeOnNotificationReceived = this.addListener(
-			'notifications_notification_received',
-			(event) => {
-				this.localEventEmitter.emit(
-					'onNotification',
-					new Notification(event, this)
-				);
-			}
-		);
+  displayNotification = async (notification) => {
+    return await FirebaseNotifications.displayNotification(notification.build())
+  }
 
-		if (Platform.OS === 'ios') {
-			FirebaseNotifications.jsInitialised();
-		}
-	}
+  onNotificationOpened = (nextOrObserver) => {
+    let listener
+    if (_.isFunction(nextOrObserver)) {
+      listener = nextOrObserver
+    } else if (isObject(nextOrObserver) && _.isFunction(nextOrObserver.next)) {
+      listener = nextOrObserver.next
+    } else {
+      throw new Error(
+        "Notifications.onNotificationOpened failed: First argument must be a function or observer object with a `next` function."
+      )
+    }
 
-	get android(): AndroidNotifications {
-		return this._android;
-	}
+    this.localEventEmitter.addListener("onNotificationOpened", listener)
 
-	get ios(): IOSNotifications {
-		return this._ios;
-	}
+    return () => {
+      this.localEventEmitter.removeListener("onNotificationOpened", listener)
+    }
+  }
 
-	onNotificationOpened = (nextOrObserver) => {
-		let listener;
-		if (_.isFunction(nextOrObserver)) {
-			listener = nextOrObserver;
-		} else if (
-			isObject(nextOrObserver) &&
-			_.isFunction(nextOrObserver.next)
-		) {
-			listener = nextOrObserver.next;
-		} else {
-			throw new Error(
-				'Notifications.onNotificationOpened failed: First argument must be a function or observer object with a `next` function.'
-			);
-		}
+  onNotification = (nextOrObserver) => {
+    let listener
+    if (_.isFunction(nextOrObserver)) {
+      listener = nextOrObserver
+    } else if (isObject(nextOrObserver) && _.isFunction(nextOrObserver.next)) {
+      listener = nextOrObserver.next
+    } else {
+      throw new Error(
+        "Notifications.onNotification failed: First argument must be a function or observer object with a `next` function."
+      )
+    }
+    this.localEventEmitter.addListener("onNotification", listener)
 
-		this.localEventEmitter.addListener('onNotificationOpened', listener);
+    return () => {
+      this.localEventEmitter.removeListener("onNotification", listener)
+    }
+  }
 
-		return () => {
-			this.localEventEmitter.removeListener(
-				'onNotificationOpened',
-				listener
-			);
-		};
-	};
+  getToken = () => {
+    return FirebaseNotifications.getToken()
+  }
 
-	onNotification = (nextOrObserver) => {
-		let listener;
-		if (_.isFunction(nextOrObserver)) {
-			listener = nextOrObserver;
-		} else if (
-			isObject(nextOrObserver) &&
-			_.isFunction(nextOrObserver.next)
-		) {
-			listener = nextOrObserver.next;
-		} else {
-			throw new Error(
-				'Notifications.onNotification failed: First argument must be a function or observer object with a `next` function.'
-			);
-		}
-		this.localEventEmitter.addListener('onNotification', listener);
+  getInitialNotification = async () => {
+    const initialNotification = await FirebaseNotifications.getInitialNotification()
+    if (_.has(initialNotification, "notification")) {
+      return {
+        action: initialNotification.action,
+        notification: new Notification(initialNotification.notification, this),
+        results: initialNotification.results,
+      }
+    }
+    return null
+  }
 
-		return () => {
-			this.localEventEmitter.removeListener('onNotification', listener);
-		};
-	};
+  getBadge = () => {
+    return FirebaseNotifications.getBadge()
+  }
 
-	getToken = () => {
-		return FirebaseNotifications.getToken();
-	};
+  setBadge = async (num) => {
+    return await FirebaseNotifications.setBadge(num)
+  }
 
-	getInitialNotification = async () => {
-		const initialNotification = await FirebaseNotifications.getInitialNotification();
-		if (_.has(initialNotification, 'notification')) {
-			return {
-				action: initialNotification.action,
-				notification: new Notification(
-					initialNotification.notification,
-					this
-				),
-				results: initialNotification.results,
-			};
-		}
-		return null;
-	};
+  requestPermission = async () => {
+    if (Platform.OS === "ios") {
+      return await RNFirebaseMessaging.requestPermission()
+    }
+    return null
+  }
 
-	getBadge = () => {
-		if (Platform.OS === 'ios') {
-			return FirebaseNotifications.getBadge();
-		}
-		return null;
-	};
+  hasPermission = async () => {
+    if (Platform.OS === "ios") {
+      return await RNFirebaseMessaging.hasPermission()
+    }
 
-	setBadge = async (num) => {
-		if (Platform.OS === 'ios') {
-			return await FirebaseNotifications.setBadge(num);
-		}
-		return null;
-	};
+    return null
+  }
 
-	requestPermission = async () => {
-		if (Platform.OS === 'ios') {
-			return await RNFirebaseMessaging.requestPermission();
-		}
-		return null;
-	};
-
-	hasPermission = async () => {
-		if (Platform.OS === 'ios') {
-			return await RNFirebaseMessaging.hasPermission();
-		}
-
-		return null;
-	};
-
-	/**
+  /**
 	 * Display a notification
 	 * @param notification
 	 * @returns {*}
@@ -249,74 +240,66 @@ class Notifications extends NativeEventEmitter {
 		}
 	}
 }
-
-class Messaging extends NativeEventEmitter {
-	constructor() {
-		super(RNFirebaseMessaging);
-		this.localEventEmitter = new EventEmitter();
-
-		removeMessageTokenRefreshed = this.addListener(
-			'messaging_token_refreshed',
-			(event) => {
-				this.localEventEmitter.emit('onTokenRefresh', event);
-			}
-		);
-	}
-
-	onTokenRefresh = (nextOrObserver) => {
-		let listener;
-		if (_.isFunction(nextOrObserver)) {
-			listener = nextOrObserver;
-		} else if (
-			isObject(nextOrObserver) &&
-			_.isFunction(nextOrObserver.next)
-		) {
-			listener = nextOrObserver.next;
-		} else {
-			throw new Error(
-				'Notifications.onTokenRefresh failed: First argument must be a function or observer object with a `next` function.'
-			);
-		}
-		this.localEventEmitter.addListener('onTokenRefresh', listener);
-
-		return () => {
-			this.localEventEmitter.removeListener('onTokenRefresh', listener);
-		};
-	};
-
-	getToken = () => {
-		return RNFirebaseMessaging.getToken();
-	};
-
-	requestPermission = async () => {
-		return await RNFirebaseMessaging.requestPermission();
-	};
-
-	hasPermission = async () => {
-		return await RNFirebaseMessaging.hasPermission();
-	};
 }
 
-export const notifications = new Notifications();
-export const messages = new Messaging();
-export const NotificationMessage = Notification;
+class Messaging extends NativeEventEmitter {
+  constructor() {
+    super(RNFirebaseMessaging)
+    this.localEventEmitter = new EventEmitter()
 
-//export default FirebaseNotifications
+    removeMessageTokenRefreshed = this.addListener(
+      "messaging_token_refreshed",
+      (event) => {
+        this.localEventEmitter.emit("onTokenRefresh", event)
+      }
+    )
+  }
 
-export const statics = {
-	Android: {
-		Action: AndroidAction,
-		BadgeIconType,
-		Category,
-		Channel: AndroidChannel,
-		ChannelGroup: AndroidChannelGroup,
-		Defaults,
-		GroupAlert,
-		Importance,
-		Priority,
-		RemoteInput: AndroidRemoteInput,
-		SemanticAction,
-		Visibility,
-	},
-	Notification,
-};
+  onTokenRefresh = (nextOrObserver) => {
+    let listener
+    if (_.isFunction(nextOrObserver)) {
+      listener = nextOrObserver
+    } else if (isObject(nextOrObserver) && _.isFunction(nextOrObserver.next)) {
+      listener = nextOrObserver.next
+    } else {
+      throw new Error(
+        "Notifications.onTokenRefresh failed: First argument must be a function or observer object with a `next` function."
+      )
+    }
+    this.localEventEmitter.addListener("onTokenRefresh", listener)
+
+    return () => {
+      this.localEventEmitter.removeListener("onTokenRefresh", listener)
+    }
+  }
+
+  getToken = () => {
+    return RNFirebaseMessaging.getToken()
+  }
+
+  requestPermission = async () => {
+    return await RNFirebaseMessaging.requestPermission()
+  }
+
+  hasPermission = async () => {
+    return await RNFirebaseMessaging.hasPermission()
+  }
+}
+
+export const notifications = new Notifications()
+export const messages = new Messaging()
+export const NotificationMessage = Notification
+export const Android = {
+  Action: AndroidAction,
+  BadgeIconType: BadgeIconType,
+  Category: Category,
+  Channel: AndroidChannel,
+  ChannelGroup: AndroidChannelGroup,
+  Defaults: Defaults,
+  GroupAlert: GroupAlert,
+  Importance: Importance,
+  Priority: Priority,
+  RemoteInput: AndroidRemoteInput,
+  SemanticAction: SemanticAction,
+  Visibility: Visibility,
+}
