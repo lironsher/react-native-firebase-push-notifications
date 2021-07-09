@@ -19,17 +19,6 @@ import {
   Visibility,
 } from "./notifications/types"
 
-import {
-	BadgeIconType,
-	Category,
-	Defaults,
-	GroupAlert,
-	Importance,
-	Priority,
-	SemanticAction,
-	Visibility,
-} from './notifications/types';
-
 import _ from 'lodash';
 
 const { FirebaseNotifications } = NativeModules;
